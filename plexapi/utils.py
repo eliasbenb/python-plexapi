@@ -18,6 +18,7 @@ from hashlib import sha1
 from threading import Event, Thread
 from urllib.parse import quote
 from xml.etree import ElementTree
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import requests
 from requests.status_codes import _codes as codes
@@ -102,6 +103,9 @@ REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}
 
 # Plex Objects - Populated at runtime
 PLEXOBJECTS = {}
+
+# Global timezone for toDatetime() conversions, set by setDatetimeTimezone()
+DATETIME_TIMEZONE = None
 
 
 class SecretsFilter(logging.Filter):
@@ -324,6 +328,39 @@ def threaded(callback, listargs):
         time.sleep(0.05)
 
     return [r for r in results if r is not None]
+
+
+def setDatetimeTimezone(value):
+    """ Sets the timezone to use when converting values with :func:`toDatetime`.
+
+        Parameters:
+            value (bool, str):
+                - ``False`` or ``None`` to disable timezone (default).
+                - ``True`` or ``"local"`` to use the local timezone.
+                - A valid IANA timezone (e.g. ``UTC`` or ``America/New_York``).
+
+        Returns:
+            datetime.tzinfo: Resolved timezone object or ``None`` if disabled or invalid.
+    """
+    global DATETIME_TIMEZONE
+
+    # Disable timezone if value is False or None
+    if value is None or value is False:
+        tzinfo = None
+    # Use local timezone if value is True or "local"
+    elif value is True or (isinstance(value, str) and value.strip().lower() == 'local'):
+        tzinfo = datetime.now().astimezone().tzinfo
+    # Attempt to resolve value as an IANA timezone string
+    else:
+        setting = str(value).strip()
+        try:
+            tzinfo = ZoneInfo(setting)
+        except ZoneInfoNotFoundError:
+            tzinfo = None
+            log.warning('Failed to set timezone to "%s", defaulting to None', value)
+
+    DATETIME_TIMEZONE = tzinfo
+    return DATETIME_TIMEZONE
 
 
 def toDatetime(value, format=None):
