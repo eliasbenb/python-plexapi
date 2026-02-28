@@ -371,9 +371,11 @@ def toDatetime(value, format=None):
             format (str): Format to pass strftime (optional; if value is a str).
     """
     if value is not None:
+        tzinfo = DATETIME_TIMEZONE
         if format:
             try:
-                return datetime.strptime(value, format)
+                dt = datetime.strptime(value, format)
+                return dt.replace(tzinfo=tzinfo) if tzinfo else dt
             except ValueError:
                 log.info('Failed to parse "%s" to datetime as format "%s", defaulting to None', value, format)
                 return None
@@ -384,9 +386,13 @@ def toDatetime(value, format=None):
                 log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
                 return None
             try:
+                if tzinfo:
+                    return datetime.fromtimestamp(value, tz=tzinfo)
                 return datetime.fromtimestamp(value)
             except (OSError, OverflowError, ValueError):
                 try:
+                    if tzinfo:
+                        return datetime.fromtimestamp(0, tz=tzinfo) + timedelta(seconds=value)
                     return datetime.fromtimestamp(0) + timedelta(seconds=value)
                 except OverflowError:
                     log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
