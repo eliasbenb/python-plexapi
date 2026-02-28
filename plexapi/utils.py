@@ -363,6 +363,27 @@ def setDatetimeTimezone(value):
     return DATETIME_TIMEZONE
 
 
+def _parseTimestamp(value, tzinfo):
+    """ Helper function to parse a timestamp value into a datetime object. """
+    try:
+        value = int(value)
+    except ValueError:
+        log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
+        return None
+    try:
+        if tzinfo:
+            return datetime.fromtimestamp(value, tz=tzinfo)
+        return datetime.fromtimestamp(value)
+    except (OSError, OverflowError, ValueError):
+        try:
+            if tzinfo:
+                return datetime.fromtimestamp(0, tz=tzinfo) + timedelta(seconds=value)
+            return datetime.fromtimestamp(0) + timedelta(seconds=value)
+        except OverflowError:
+            log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
+            return None
+
+
 def toDatetime(value, format=None):
     """ Returns a datetime object from the specified value.
 
@@ -380,23 +401,7 @@ def toDatetime(value, format=None):
                 log.info('Failed to parse "%s" to datetime as format "%s", defaulting to None', value, format)
                 return None
         else:
-            try:
-                value = int(value)
-            except ValueError:
-                log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
-                return None
-            try:
-                if tzinfo:
-                    return datetime.fromtimestamp(value, tz=tzinfo)
-                return datetime.fromtimestamp(value)
-            except (OSError, OverflowError, ValueError):
-                try:
-                    if tzinfo:
-                        return datetime.fromtimestamp(0, tz=tzinfo) + timedelta(seconds=value)
-                    return datetime.fromtimestamp(0) + timedelta(seconds=value)
-                except OverflowError:
-                    log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
-                    return None
+            return _parseTimestamp(value, tzinfo)
     return value
 
 
