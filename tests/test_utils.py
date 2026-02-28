@@ -12,6 +12,35 @@ def test_utils_toDatetime():
     # assert str(utils.toDatetime('0'))[:-9] in ['1970-01-01', '1969-12-31']
 
 
+def test_utils_setDatetimeTimezone_disabled_and_utc():
+    original_tz = utils.DATETIME_TIMEZONE
+    try:
+        assert utils.setDatetimeTimezone(False) is None
+        assert utils.toDatetime("0").tzinfo is None
+
+        tzinfo = utils.setDatetimeTimezone("UTC")
+        assert tzinfo is not None
+        assert utils.toDatetime("0").tzinfo == tzinfo
+        assert utils.toDatetime("2026-01-01", format="%Y-%m-%d").tzinfo == tzinfo
+    finally: # Restore for other tests
+        utils.DATETIME_TIMEZONE = original_tz
+
+
+def test_utils_setDatetimeTimezone_local_and_invalid():
+    original_tz = utils.DATETIME_TIMEZONE
+    try:
+        assert utils.setDatetimeTimezone(True) is not None
+        assert utils.toDatetime("0").tzinfo is not None
+
+        assert utils.setDatetimeTimezone("local") is not None
+        assert utils.toDatetime("0").tzinfo is not None
+
+        assert utils.setDatetimeTimezone("Not/A_Real_Timezone") is None
+        assert utils.toDatetime("0").tzinfo is None
+    finally: # Restore for other tests
+        utils.DATETIME_TIMEZONE = original_tz
+
+
 def test_utils_threaded():
     def _squared(num, results, i, job_is_done_event=None):
         time.sleep(0.5)
