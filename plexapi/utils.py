@@ -396,7 +396,11 @@ def toDatetime(value, format=None):
         if format:
             try:
                 dt = datetime.strptime(value, format)
-                return dt.replace(tzinfo=tzinfo) if tzinfo else dt
+                # If parsed datetime already contains timezone
+                if dt.tzinfo is not None:
+                    return dt.astimezone(tzinfo) if tzinfo else dt
+                else:
+                    return dt.replace(tzinfo=tzinfo) if tzinfo else dt
             except ValueError:
                 log.info('Failed to parse "%s" to datetime as format "%s", defaulting to None', value, format)
                 return None
