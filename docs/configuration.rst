@@ -77,6 +77,10 @@ Section [plexapi] Options
     * `true` or `local`: use the local machine timezone.
     * IANA timezone string (for example `UTC` or `America/New_York`): use that timezone.
 
+    This feature relies on Python's :class:`zoneinfo.ZoneInfo` and the availability of IANA tzdata
+    on the system. On platforms without system tzdata (notably Windows), you may need to install
+    the :mod:`tzdata` Python package for IANA timezone strings (such as ``America/New_York``) to
+    work as expected.
     Toggling this option may break comparisons between aware and naive datetimes.
 
 
