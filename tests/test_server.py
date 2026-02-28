@@ -3,11 +3,11 @@ import time
 from urllib.parse import quote_plus
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.server import PlexServer
-from plexapi.utils import download
+from plexapi.utils import download, setDatetimeTimezone, DATETIME_TIMEZONE
 from requests import Session
 
 from . import conftest as utils
@@ -30,6 +30,32 @@ def test_server_attr(plex, account):
     assert utils.is_int(plex.transcoderActiveVideoSessions, gte=0)
     assert utils.is_datetime(plex.updatedAt)
     assert len(plex.version) >= 5
+
+
+def test_server_updatedAt_timezone(plex):
+    original = DATETIME_TIMEZONE
+    try:
+        # no timezone configured, should be naive
+        setDatetimeTimezone(False)
+        dt_naive = plex.updatedAt
+        assert dt_naive.tzinfo is None
+
+        # local timezone configured, should be aware
+        setDatetimeTimezone(True)
+        dt_local = plex.updatedAt
+        assert dt_local.tzinfo is not None
+
+        # explicit IANA zones. Check that the offset is correct too
+        setDatetimeTimezone("UTC")
+        dt: datetime = plex.updatedAt
+        assert dt.tzinfo is not None
+        assert dt.tzinfo.utcoffset(dt) == timedelta(0)
+        setDatetimeTimezone("Asia/Dubai")
+        dt: datetime = plex.updatedAt
+        assert dt.tzinfo is not None
+        assert dt.tzinfo.utcoffset(dt) == timedelta(hours=4)
+    finally:  # Restore for other tests
+        setDatetimeTimezone(original)
 
 
 def test_server_alert_listener(plex, movies):
