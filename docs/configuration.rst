@@ -12,6 +12,7 @@ are optional. An example config.ini file may look like the following with all po
     [plexapi]
     container_size = 50
     timeout = 30
+    timezone = false
 
     [auth]
     myplex_username = johndoe
@@ -68,6 +69,15 @@ Section [plexapi] Options
 
     When the options is set to `true` the connection procedure will be aborted with first successfully
     established connection (default: false).
+
+**timezone**
+    Controls whether :func:`~plexapi.utils.toDatetime` returns timezone-aware datetime objects.
+
+    * `false` (default): keep naive datetime objects (backward compatible).
+    * `true` or `local`: use the local machine timezone.
+    * IANA timezone string (for example `UTC` or `America/New_York`): use that timezone.
+
+    Toggling this option may break comparisons between aware and naive datetimes.
 
 
 Section [auth] Options
