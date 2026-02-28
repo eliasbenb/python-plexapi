@@ -37,20 +37,24 @@ def test_server_updatedAt_timezone(plex):
     try:
         # no timezone configured, should be naive
         setDatetimeTimezone(False)
+        plex.reload()
         dt_naive = plex.updatedAt
         assert dt_naive.tzinfo is None
 
         # local timezone configured, should be aware
         setDatetimeTimezone(True)
+        plex.reload()
         dt_local = plex.updatedAt
         assert dt_local.tzinfo is not None
 
         # explicit IANA zones. Check that the offset is correct too
         setDatetimeTimezone("UTC")
+        plex.reload()
         dt: datetime = plex.updatedAt
         assert dt.tzinfo is not None
         assert dt.tzinfo.utcoffset(dt) == timedelta(0)
         setDatetimeTimezone("Asia/Dubai")
+        plex.reload()
         dt: datetime = plex.updatedAt
         assert dt.tzinfo is not None
         assert dt.tzinfo.utcoffset(dt) == timedelta(hours=4)
