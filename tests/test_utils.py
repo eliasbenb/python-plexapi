@@ -22,7 +22,7 @@ def test_utils_setDatetimeTimezone_disabled_and_utc():
         assert tzinfo is not None
         assert utils.toDatetime("0").tzinfo == tzinfo
         assert utils.toDatetime("2026-01-01", format="%Y-%m-%d").tzinfo == tzinfo
-    finally: # Restore for other tests
+    finally:  # Restore for other tests
         utils.DATETIME_TIMEZONE = original_tz
 
 
@@ -37,7 +37,7 @@ def test_utils_setDatetimeTimezone_local_and_invalid():
 
         assert utils.setDatetimeTimezone("Not/A_Real_Timezone") is None
         assert utils.toDatetime("0").tzinfo is None
-    finally: # Restore for other tests
+    finally:  # Restore for other tests
         utils.DATETIME_TIMEZONE = original_tz
 
 
