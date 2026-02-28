@@ -24,7 +24,7 @@ def test_video_Movie_attributeerror(movie):
 
 
 def test_video_Movie_datetime_timezone(movie):
-    original = plexutils.DATETIME_TIMEZONE
+    original_tz = plexutils.DATETIME_TIMEZONE
     try:
         # no timezone configured, should be naive
         setDatetimeTimezone(False)
@@ -51,7 +51,7 @@ def test_video_Movie_datetime_timezone(movie):
         assert dt.tzinfo is not None
         assert dt.tzinfo.utcoffset(dt) == timedelta(hours=4)
     finally:  # Restore for other tests
-        setDatetimeTimezone(original)
+        plexutils.DATETIME_TIMEZONE = original_tz
 
 
 def test_video_ne(movies):
